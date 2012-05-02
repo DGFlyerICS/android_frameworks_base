@@ -61,7 +61,7 @@
                         android:id="@+id/high_temp"
                         android:textSize="10.0sp"
                         android:textStyle="normal"
-                        android:textColor="#ff2789af"
+                        android:textColor="#ffffffff"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -71,7 +71,7 @@
                         android:paddingLeft="1dp"
                         android:paddingRight="1dp"
                         android:textStyle="normal"
-                        android:textColor="#ff555555"
+                        android:textColor="#ffffffff"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -79,7 +79,7 @@
                         android:id="@+id/low_temp"
                         android:textSize="10.0sp"
                         android:textStyle="normal"
-                        android:textColor="#ff2789af"
+                        android:textColor="#ffffffff"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
 
@@ -100,6 +100,7 @@
             <com.android.systemui.statusbar.policy.DateView
                 android:id="@+id/date"
                 android:textAppearance="@style/TextAppearance.StatusBar.Date"
+                android:textColor="#ffffffff"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="4dp"
@@ -151,7 +152,7 @@
                         android:id="@+id/condition"
                         android:textSize="14.0sp"
                         android:textStyle="normal"
-                        android:textColor="#ff2789af"
+                        android:textColor="#ffffffff"
                         android:singleLine="true"
                         android:paddingTop="4dp"
                         android:paddingBottom="4dp"
