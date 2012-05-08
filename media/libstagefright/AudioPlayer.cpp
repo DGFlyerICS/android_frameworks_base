@@ -50,6 +50,7 @@ AudioPlayer::AudioPlayer(
       mFirstBufferResult(OK),
       mFirstBuffer(NULL),
       mAudioSink(audioSink),
+      mSourcePaused(false),
       mObserver(observer) {
 }
 
@@ -70,6 +71,7 @@ status_t AudioPlayer::start(bool sourceAlreadyStarted) {
 
     status_t err;
     if (!sourceAlreadyStarted) {
+        mSourcePaused = false;
         err = mSource->start();
 
         if (err != OK) {
@@ -117,7 +119,8 @@ status_t AudioPlayer::start(bool sourceAlreadyStarted) {
     int32_t numChannels;
     success = format->findInt32(kKeyChannelCount, &numChannels);
     CHECK(success);
-
+    success = format->findCString(kKeyDecoderComponent, &mComponentName);
+    CHECK(success);
     if (mAudioSink.get() != NULL) {
         status_t err = mAudioSink->open(
                 mSampleRate, numChannels, AUDIO_FORMAT_PCM_16_BIT,
@@ -193,10 +196,21 @@ void AudioPlayer::pause(bool playPendingSamples) {
             mAudioTrack->pause();
         }
     }
+    if (strncmp("OMX.google.", mComponentName, 11)) {
+        CHECK(mSource != NULL);
+        if (mSource->pause() == OK) {
+            mSourcePaused = true;
+        }
+    }
 }
 
 void AudioPlayer::resume() {
     CHECK(mStarted);
+    CHECK(mSource != NULL);
+    if (mSourcePaused == true) {
+        mSourcePaused = false;
+        mSource->start();
+    }
 
     if (mAudioSink.get() != NULL) {
         mAudioSink->start();
@@ -233,6 +247,7 @@ void AudioPlayer::reset() {
         mInputBuffer = NULL;
     }
 
+    mSourcePaused = false;
     mSource->stop();
 
     // The following hack is necessary to ensure that the OMX

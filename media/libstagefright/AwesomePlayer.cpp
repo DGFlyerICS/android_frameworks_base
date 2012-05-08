@@ -486,6 +486,10 @@ status_t AwesomePlayer::setDataSource_l(const sp<MediaExtractor> &extractor) {
 }
 
 void AwesomePlayer::reset() {
+    //Disconnect datasource
+    if (mConnectingDataSource != NULL) {
+        mConnectingDataSource->disconnect();
+    }
     Mutex::Autolock autoLock(mLock);
     reset_l();
 }
@@ -539,6 +543,10 @@ void AwesomePlayer::reset_l() {
 
     mWVMExtractor.clear();
     mCachedSource.clear();
+    if (mConnectingDataSource != NULL) {
+        mConnectingDataSource.clear();
+    }
+
     mAudioTrack.clear();
     mVideoTrack.clear();
 
@@ -1321,14 +1329,14 @@ status_t AwesomePlayer::getPosition(int64_t *positionUs) {
 }
 
 status_t AwesomePlayer::seekTo(int64_t timeUs) {
-    if (mExtractorFlags & MediaExtractor::CAN_SEEK) {
+    if (((timeUs == 0) && (mExtractorFlags & MediaExtractor::CAN_SEEK_TO_ZERO)) ||
+        (mExtractorFlags & MediaExtractor::CAN_SEEK) ) {
         Mutex::Autolock autoLock(mLock);
         return seekTo_l(timeUs);
-    }else {
+    } else {
         notifyListener_l(MEDIA_SEEK_COMPLETE);
         mSeekNotificationSent = true;
     }
-
     return OK;
 }
 
@@ -2013,7 +2021,6 @@ void AwesomePlayer::onCheckAudioStatus() {
     if (mWatchForAudioEOS && mAudioPlayer->reachedEOS(&finalStatus)) {
         mWatchForAudioEOS = false;
         modifyFlags(AUDIO_AT_EOS, SET);
-        modifyFlags(FIRST_FRAME, SET);
         postStreamDoneEvent_l(finalStatus);
     }
 }
@@ -2138,7 +2145,8 @@ status_t AwesomePlayer::finishSetDataSource_l() {
             dataSource = mConnectingDataSource;
         }
 
-        mConnectingDataSource.clear();
+        //keep the connecting data source pointer, so that disconnect can be called
+        //mConnectingDataSource.clear();
 
         String8 contentType = dataSource->getMIMEType();
 
@@ -2370,6 +2378,7 @@ uint32_t AwesomePlayer::flags() const {
 
 void AwesomePlayer::postAudioEOS(int64_t delayUs) {
     mAudioEOD = true;
+    modifyFlags(FIRST_FRAME, SET);
     postCheckAudioStatusEvent(delayUs);
 }
 
